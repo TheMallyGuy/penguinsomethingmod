@@ -773,15 +773,30 @@ const legacyEsModulePlugin = {
 };
 
 function rewriteLegacyDefault(source) {
-    if (!/exports\.__esModule\s*=\s*true;/.test(source)) return source;
-    if (!/exports\.default\s*=/.test(source)) return source;
-    const stripped = source.replace(/exports\.__esModule\s*=\s*true;/g, "");
-    // Keep original semantics when other named exports are present.
-    if (/(^|[^.\w])exports\.(?!default\b)\w+/.test(stripped.replace(/exports\.default\s*=/g, ""))) {
-        return source;
+    // Pattern A: `exports.__esModule = true; ... exports.default = <expr>;`
+    // (babel-runtime/helpers/*)
+    if (/exports\.__esModule\s*=\s*true;/.test(source) && /exports\.default\s*=/.test(source)) {
+        const stripped = source.replace(/exports\.__esModule\s*=\s*true;/g, "");
+        // Keep original semantics when other named exports are present.
+        if (/(^|[^.\w])exports\.(?!default\b)\w+/.test(stripped.replace(/exports\.default\s*=/g, ""))) {
+            return source;
+        }
+        const out = stripped.replace(/exports\.default\s*=/g, "module.exports =");
+        return `${out}\nmodule.exports.default = module.exports;\n`;
     }
-    const out = stripped.replace(/exports\.default\s*=/g, "module.exports =");
-    return `${out}\nmodule.exports.default = module.exports;\n`;
+
+    // Pattern B: `module.exports = { "default": <expr>, __esModule: true };`
+    // (babel-runtime/core-js/* re-exports, e.g. core-js/object/assign) — same
+    // underlying bug, different shape, so the regexes above never match it and
+    // it was silently passed through unrewritten.
+    const objectLiteralMatch = source.match(
+        /^module\.exports\s*=\s*\{\s*(?:"default"|default)\s*:\s*([\s\S]+?)\s*,\s*__esModule\s*:\s*true\s*\}\s*;?\s*$/
+    );
+    if (objectLiteralMatch) {
+        return `module.exports = ${objectLiteralMatch[1]};\nmodule.exports.default = module.exports;\n`;
+    }
+
+    return source;
 }
 
 // babel/webpack-compiled CJS packages set `exports.__esModule = true` and put

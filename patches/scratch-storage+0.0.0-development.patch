@@ -1,0 +1,13 @@
+diff --git a/node_modules/scratch-storage/src/AssetLoader.js b/node_modules/scratch-storage/src/AssetLoader.js
+index 45d443a..1ecc050 100644
+--- a/node_modules/scratch-storage/src/AssetLoader.js
++++ b/node_modules/scratch-storage/src/AssetLoader.js
+@@ -18,7 +18,11 @@ class AssetLoader {
+          * Sequence of tools to proxy.
+          * @type {Array.<Tool>}
+          */
+-        this.tools = [new FetchWorkerTool(), new FetchTool()];
++        this.tools = [new FetchTool()];
+     }
+ 
+     /**

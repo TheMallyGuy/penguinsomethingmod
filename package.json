@@ -19,7 +19,8 @@
         "test:unit": "jest test[\\\\/]unit",
         "test:smoke": "jest --runInBand test[\\\\/]smoke",
         "watch": "bun run ../build.cjs --watch",
-        "install-slow": "rimraf ./node_modules && rimraf ./package-lock.json && npm i --force"
+        "install-slow": "rimraf ./node_modules && rimraf ./package-lock.json && npm i --force",
+        "postinstall": "patch-package"
     },
     "author": "Massachusetts Institute of Technology",
     "license": "GPL-3.0",
@@ -119,6 +120,7 @@
         "jest-junit": "7.0.0",
         "loader-utils": "1.4.2",
         "mkdirp": "1.0.3",
+        "patch-package": "^8.0.1",
         "postcss": "^8",
         "postcss-import": "^16",
         "postcss-modules": "^9.0.1",

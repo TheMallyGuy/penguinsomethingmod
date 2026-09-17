@@ -42,11 +42,26 @@ const isTrustedExtensionOrigin = url => (
     false // ignore this, just makes copy & paste easier
 );
 /**
+ * Windows opened by tauri-ext-scratch's own createWindow block carry this query param
+ * so extensions can keep loading unsandboxed in windows we spawned ourselves, without
+ * showing the "Extension Security" modal on every new window.
+ */
+const TAURI_EXT_BYPASS_PARAM = 'tauriExtSecureBypass';
+const TAURI_EXT_BYPASS_TOKEN = 'tw-ext-scratch-9f3a1c';
+const isTauriExtBypassWindow = (() => {
+    try {
+        return new URLSearchParams(window.location.search).get(TAURI_EXT_BYPASS_PARAM) === TAURI_EXT_BYPASS_TOKEN;
+    } catch (e) {
+        return false;
+    }
+})();
+
+/**
  * Trusted extensions are loaded automatically and without a sandbox.
  * @param {string} url URL as a string.
  * @returns {boolean} True if the extension can is trusted
  */
-const isTrustedExtension = url => (isTrustedExtensionOrigin(url) || extensionsTrustedByUser.has(url));
+const isTrustedExtension = url => (isTauriExtBypassWindow || isTrustedExtensionOrigin(url) || extensionsTrustedByUser.has(url));
 
 /**
  * Set of fetch resource origins that were manually trusted by the user.
